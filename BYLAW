@@ -1,0 +1,161 @@
+-- KSA HUB (LAW) Ultimate
+-- By KSAHUB
+-- Features: Anti-death speed, Speed slider, Modern GUI, Player Names, Open/Close Icon
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+
+-- Variables
+local Speed = math.random(32,39) -- Initial speed between 32 and 39
+local SpeedEnabled = false
+
+-- ====== Icon to Open GUI ======
+local ScreenGui = Instance.new("ScreenGui", PlayerGui)
+ScreenGui.Name = "KSA_HUB_LAW"
+
+local IconButton = Instance.new("TextButton", ScreenGui)
+IconButton.Size = UDim2.new(0, 100, 0, 40)
+IconButton.Position = UDim2.new(0, 10, 0, 10)
+IconButton.Text = "KSAHUB"
+IconButton.BackgroundColor3 = Color3.fromRGB(50,50,50)
+IconButton.TextColor3 = Color3.fromRGB(255,255,255)
+IconButton.TextScaled = true
+IconButton.AutoButtonColor = true
+
+-- ====== Main GUI ======
+local Frame = Instance.new("Frame", ScreenGui)
+Frame.Size = UDim2.new(0, 250, 0, 150)
+Frame.Position = UDim2.new(0, 10, 0, 60)
+Frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+Frame.BorderSizePixel = 0
+Frame.Visible = false
+Frame.Active = true
+Frame.Draggable = true
+Frame.ClipsDescendants = true
+
+-- Animation: Fade In
+local function AnimateOpen()
+    Frame.Visible = true
+    Frame.BackgroundTransparency = 1
+    for i = 1, 10 do
+        Frame.BackgroundTransparency = Frame.BackgroundTransparency - 0.1
+        wait(0.03)
+    end
+end
+
+-- Close Button (X)
+local CloseBtn = Instance.new("TextButton", Frame)
+CloseBtn.Size = UDim2.new(0, 30, 0, 30)
+CloseBtn.Position = UDim2.new(1, -35, 0, 5)
+CloseBtn.Text = "X"
+CloseBtn.BackgroundColor3 = Color3.fromRGB(200,0,0)
+CloseBtn.TextColor3 = Color3.fromRGB(255,255,255)
+CloseBtn.TextScaled = true
+
+CloseBtn.MouseButton1Click:Connect(function()
+    Frame.Visible = false
+end)
+
+-- ====== Speed ON/OFF Buttons ======
+local OnButton = Instance.new("TextButton", Frame)
+OnButton.Size = UDim2.new(0, 80, 0, 40)
+OnButton.Position = UDim2.new(0, 10, 0, 50)
+OnButton.Text = "ON"
+OnButton.BackgroundColor3 = Color3.fromRGB(0, 200, 0)
+OnButton.TextScaled = true
+OnButton.Font = Enum.Font.SourceSansBold
+OnButton.TextColor3 = Color3.fromRGB(255,255,255)
+
+local OffButton = Instance.new("TextButton", Frame)
+OffButton.Size = UDim2.new(0, 80, 0, 40)
+OffButton.Position = UDim2.new(0, 160, 0, 50)
+OffButton.Text = "OFF"
+OffButton.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
+OffButton.TextScaled = true
+OffButton.Font = Enum.Font.SourceSansBold
+OffButton.TextColor3 = Color3.fromRGB(255,255,255)
+
+OnButton.MouseButton1Click:Connect(function()
+    SpeedEnabled = true
+    OnButton.BackgroundColor3 = Color3.fromRGB(0,200,0)
+    OffButton.BackgroundColor3 = Color3.fromRGB(200,0,0)
+end)
+
+OffButton.MouseButton1Click:Connect(function()
+    SpeedEnabled = false
+    OnButton.BackgroundColor3 = Color3.fromRGB(0,0,0)
+    OffButton.BackgroundColor3 = Color3.fromRGB(200,0,0)
+end)
+
+-- ====== Speed Slider ======
+local Slider = Instance.new("TextBox", Frame)
+Slider.Size = UDim2.new(0.8,0,0,30)
+Slider.Position = UDim2.new(0.1,0,0,105)
+Slider.PlaceholderText = "Set Speed (10-200)"
+Slider.Text = tostring(Speed)
+Slider.TextScaled = true
+Slider.Font = Enum.Font.SourceSansBold
+Slider.ClearTextOnFocus = false
+Slider.TextColor3 = Color3.fromRGB(255,255,255)
+Slider.BackgroundColor3 = Color3.fromRGB(50,50,50)
+
+Slider.FocusLost:Connect(function()
+    local val = tonumber(Slider.Text)
+    if val and val >= 10 and val <= 200 then
+        Speed = val
+    else
+        Slider.Text = tostring(Speed)
+    end
+end)
+
+-- ====== Toggle GUI with icon ======
+IconButton.MouseButton1Click:Connect(function()
+    if Frame.Visible then
+        Frame.Visible = false
+    else
+        AnimateOpen()
+    end
+end)
+
+-- ====== Anti-death & constant speed ======
+RunService.RenderStepped:Connect(function()
+    local char = LocalPlayer.Character
+    if char and char:FindFirstChild("Humanoid") then
+        local hum = char.Humanoid
+        if SpeedEnabled then
+            hum.WalkSpeed = Speed
+            if hum.Health <= 0 then
+                hum.Health = hum.MaxHealth
+            end
+        end
+    end
+end)
+
+-- ====== Show player names ======
+local function AddNameTags()
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer then
+            if not player.Character then continue end
+            if player.Character:FindFirstChild("Head") and not player.Character:FindFirstChild("KSA_NameTag") then
+                local Billboard = Instance.new("BillboardGui", player.Character.Head)
+                Billboard.Name = "KSA_NameTag"
+                Billboard.Size = UDim2.new(0, 100, 0, 40)
+                Billboard.StudsOffset = Vector3.new(0, 2, 0)
+                Billboard.AlwaysOnTop = true
+
+                local NameLabel = Instance.new("TextLabel", Billboard)
+                NameLabel.Size = UDim2.new(1, 0, 1, 0)
+                NameLabel.BackgroundTransparency = 1
+                NameLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
+                NameLabel.TextScaled = true
+                NameLabel.Font = Enum.Font.SourceSansBold
+                NameLabel.Text = player.Name
+            end
+        end
+    end
+end
+
+RunService.RenderStepped:Connect(AddNameTags)
